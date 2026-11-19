@@ -13,7 +13,7 @@
   --pend:#A86A00;--pend-bg:#FBEFD5;
   --prog:#2A55C8;--prog-bg:#E1EAFB;
   --done:#2B7A4B;--done-bg:#DDF1E5;
-  --danger:#B3261E;
+  --danger:#B3261E;--alta:#B3261E;--alta-bg:#FBE0DE;
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
 }
@@ -24,7 +24,7 @@
     --pend:#F0B64E;--pend-bg:#3A2D12;
     --prog:#8FB0FF;--prog-bg:#1B2B54;
     --done:#6FD39A;--done-bg:#15392A;
-    --danger:#FF8A80;color-scheme:dark;
+    --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
@@ -33,7 +33,7 @@
   --pend:#F0B64E;--pend-bg:#3A2D12;
   --prog:#8FB0FF;--prog-bg:#1B2B54;
   --done:#6FD39A;--done-bg:#15392A;
-  --danger:#FF8A80;color-scheme:dark;
+  --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
@@ -79,6 +79,11 @@ button,select,input,textarea{font:inherit;color:inherit}
 .st[data-s="Pendente"]{background:var(--pend-bg);color:var(--pend)}
 .st[data-s="Em andamento"]{background:var(--prog-bg);color:var(--prog)}
 .st[data-s="Resolvido"]{background:var(--done-bg);color:var(--done)}
+.prirow{margin-bottom:6px}
+.pri{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700}
+.pri[data-p="Alta"]{background:var(--alta-bg);color:var(--alta)}
+.pri[data-p="Média"]{background:var(--pend-bg);color:var(--pend)}
+.pri[data-p="Baixa"]{background:var(--done-bg);color:var(--done)}
 .empty{text-align:center;border:2px dashed var(--line);border-radius:12px;padding:40px 20px;color:var(--muted)}
 .empty h2{color:var(--ink);font-size:1.4rem;margin-bottom:6px}
 
@@ -125,6 +130,10 @@ label textarea{min-height:110px;resize:vertical}
   <div class="tools">
     <input type="search" id="busca" placeholder="Buscar pelo título" aria-label="Buscar pelo título">
     <select id="filtroResp" aria-label="Filtrar por responsável"></select>
+    <select id="ordem" aria-label="Ordenar impedimentos">
+      <option value="recentes">Mais recentes</option>
+      <option value="prioridade">Prioridade (Alta primeiro)</option>
+    </select>
   </div>
 
   <div id="lista"></div>
@@ -150,6 +159,11 @@ label textarea{min-height:110px;resize:vertical}
         <option>Pendente</option><option>Em andamento</option><option>Resolvido</option>
       </select>
     </label>
+    <label>Prioridade
+      <select id="f-prio">
+        <option>Alta</option><option selected>Média</option><option>Baixa</option>
+      </select>
+    </label>
     <div class="anexos">
       <div class="tit">Imagens (opcional)</div>
       <input type="file" id="f-img" accept="image/*" multiple aria-describedby="dica-img">
@@ -171,6 +185,7 @@ label textarea{min-height:110px;resize:vertical}
 
 <script>
 const STATUS = ["Pendente", "Em andamento", "Resolvido"];
+const PRIO = ["Alta", "Média", "Baixa"];
 const KEY = "destravatime:v1";
 let itens = [];
 let filtroStatus = "Todos";
@@ -179,7 +194,10 @@ let editandoId = null;
 const $ = (id) => document.getElementById(id);
 
 function carregar() {
-  try { itens = JSON.parse(localStorage.getItem(KEY)) || []; }
+  try {
+    itens = JSON.parse(localStorage.getItem(KEY)) || [];
+    itens.forEach((i) => { if (!PRIO.includes(i.prioridade)) i.prioridade = "Média"; });
+  }
   catch (e) { itens = []; }
 }
 function salvar() {
@@ -233,7 +251,13 @@ function renderLista() {
     .filter((i) => filtroStatus === "Todos" || i.status === filtroStatus)
     .filter((i) => !resp || i.responsavel === resp)
     .filter((i) => !q || i.titulo.toLowerCase().includes(q))
-    .sort((a, b) => b.criado.localeCompare(a.criado));
+    .sort((a, b) => {
+      if ($("ordem").value === "prioridade") {
+        const d = PRIO.indexOf(a.prioridade) - PRIO.indexOf(b.prioridade);
+        if (d) return d;
+      }
+      return b.criado.localeCompare(a.criado);
+    });
 
   const lista = $("lista");
   lista.replaceChildren();
@@ -262,6 +286,8 @@ function renderLista() {
     };
 
     const quem = el("div", { className: "who" }, "Responsável: ", el("strong", { textContent: i.responsavel }), " · Criado em " + fmtData(i.criado));
+    const pri = el("span", { className: "pri", textContent: "Prioridade " + i.prioridade });
+    pri.dataset.p = i.prioridade;
     const miniaturas = el("div", { className: "thumbs" });
     (i.imagens || []).forEach((src, n) => {
       const b = el("button", { type: "button", ariaLabel: "Ampliar imagem " + (n + 1) + " de " + i.titulo });
@@ -270,6 +296,7 @@ function renderLista() {
       miniaturas.append(b);
     });
     const card = el("article", { className: "item" },
+      el("div", { className: "prirow" }, pri),
       el("h3", { textContent: i.titulo }),
       el("p", { textContent: i.descricao }),
       miniaturas,
@@ -292,6 +319,7 @@ function abrir(item) {
   $("f-desc").value = item ? item.descricao : "";
   $("f-resp").value = item ? item.responsavel : "";
   $("f-status").value = item ? item.status : "Pendente";
+  $("f-prio").value = item ? item.prioridade : "Média";
   $("f-img").value = "";
   $("e-img").textContent = "";
   imgsTemp = item ? [...(item.imagens || [])] : [];
@@ -315,11 +343,12 @@ $("frm").onsubmit = (ev) => {
   if (!ok) return;
 
   const status = $("f-status").value;
+  const prioridade = $("f-prio").value;
   if (editandoId) {
     const i = itens.find((x) => x.id === editandoId);
-    Object.assign(i, { titulo, descricao, responsavel, status, imagens: [...imgsTemp] });
+    Object.assign(i, { titulo, descricao, responsavel, status, prioridade, imagens: [...imgsTemp] });
   } else {
-    itens.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), titulo, descricao, responsavel, status, imagens: [...imgsTemp], criado: new Date().toISOString() });
+    itens.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), titulo, descricao, responsavel, status, prioridade, imagens: [...imgsTemp], criado: new Date().toISOString() });
   }
   salvar();
   $("dlg").close();
@@ -377,6 +406,7 @@ $("lightbox").onclick = (ev) => { if (ev.target.id === "lightbox") $("lightbox")
 
 $("busca").oninput = renderLista;
 $("filtroResp").onchange = renderLista;
+$("ordem").onchange = renderLista;
 
 carregar();
 render();
