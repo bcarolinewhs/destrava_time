@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DestravaTime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F3;--surface:#FFFFFF;--ink:#13232B;--muted:#5B6B73;--line:#D3DCE0;
+  --brand:#0E6B6B;--brand-ink:#FFFFFF;
+  --pend:#A86A00;--pend-bg:#FBEFD5;
+  --prog:#2A55C8;--prog-bg:#E1EAFB;
+  --done:#2B7A4B;--done-bg:#DDF1E5;
+  --danger:#B3261E;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1A1F;--surface:#17262D;--ink:#E7EEF1;--muted:#9BAEB7;--line:#2B3F48;
+    --brand:#3FB5B0;--brand-ink:#08242A;
+    --pend:#F0B64E;--pend-bg:#3A2D12;
+    --prog:#8FB0FF;--prog-bg:#1B2B54;
+    --done:#6FD39A;--done-bg:#15392A;
+    --danger:#FF8A80;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1A1F;--surface:#17262D;--ink:#E7EEF1;--muted:#9BAEB7;--line:#2B3F48;
+  --brand:#3FB5B0;--brand-ink:#08242A;
+  --pend:#F0B64E;--pend-bg:#3A2D12;
+  --prog:#8FB0FF;--prog-bg:#1B2B54;
+  --done:#6FD39A;--done-bg:#15392A;
+  --danger:#FF8A80;color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;margin:0;line-height:1.1}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:28px}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.03em}
+.lead{margin:8px 0 0;color:var(--muted);max-width:46ch}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--brand)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.danger{color:var(--danger)}
+.btn.small{padding:6px 12px;font-size:.9rem}
+
+/* barra de progresso: o elemento de destaque */
+.meter{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin-bottom:12px}
+.meter span{display:block;transition:width .35s ease}
+.m-p{background:var(--pend)}.m-a{background:var(--prog)}.m-r{background:var(--done)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.tab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer}
+.tab b{display:block;font:800 1.6rem/1 "Bricolage Grotesque",sans-serif}
+.tab small{color:var(--muted)}
+.tab[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.tools input,.tools select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.tools input{flex:1 1 220px}
+
+.item{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.item[data-s="Pendente"]{border-left-color:var(--pend)}
+.item[data-s="Em andamento"]{border-left-color:var(--prog)}
+.item[data-s="Resolvido"]{border-left-color:var(--done)}
+.item[data-s="Resolvido"] h3{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
+.item h3{font-size:1.2rem;margin-bottom:6px;overflow-wrap:anywhere}
+.item p{margin:0 0 12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.who{font-size:.9rem;color:var(--muted)}
+.who strong{color:var(--ink)}
+.acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.st{border-radius:999px;border:1px solid transparent;padding:6px 10px;font-weight:600;cursor:pointer}
+.st[data-s="Pendente"]{background:var(--pend-bg);color:var(--pend)}
+.st[data-s="Em andamento"]{background:var(--prog-bg);color:var(--prog)}
+.st[data-s="Resolvido"]{background:var(--done-bg);color:var(--done)}
+.empty{text-align:center;border:2px dashed var(--line);border-radius:12px;padding:40px 20px;color:var(--muted)}
+.empty h2{color:var(--ink);font-size:1.4rem;margin-bottom:6px}
+
+.anexos{margin:0 0 14px}
+.anexos .tit{font-weight:600;margin-bottom:6px}
+.anexos small{display:block;color:var(--muted);font-weight:400;margin-top:6px}
+.anexos input[type=file]{margin-top:6px}
+.previa,.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.previa figure{margin:0;position:relative}
+.previa img{display:block;width:92px;height:92px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.previa button{position:absolute;top:4px;right:4px;border:0;border-radius:999px;width:26px;height:26px;cursor:pointer;background:var(--ink);color:var(--surface);font-weight:700;line-height:1}
+.thumbs{margin:0 0 12px}
+.thumbs button{padding:0;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer;overflow:hidden}
+.thumbs img{display:block;width:84px;height:84px;object-fit:cover}
+#lightbox{width:min(900px,calc(100vw - 24px));text-align:center}
+#lightbox img{max-width:100%;max-height:70vh;border-radius:8px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px;width:min(520px,calc(100vw - 24px))}
+dialog::backdrop{background:rgba(5,15,20,.55)}
+dialog h2{font-size:1.6rem;margin-bottom:16px}
+label{display:block;font-weight:600;margin:0 0 14px}
+label input,label textarea,label select{display:block;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-weight:400}
+label textarea{min-height:110px;resize:vertical}
+.err{color:var(--danger);font-weight:500;font-size:.9rem;margin-top:4px;min-height:1.2em}
+.foot{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+@media (max-width:560px){.tabs{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){.meter span{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>DestravaTime</h1>
+      <p class="lead">Registre o que está travando a equipe, diga quem resolve e acompanhe até destravar.</p>
+    </div>
+    <button class="btn primary" id="novo">Novo impedimento</button>
+  </header>
+
+  <div class="meter" role="img" aria-label="Proporção de impedimentos por status" id="meter">
+    <span class="m-p"></span><span class="m-a"></span><span class="m-r"></span>
+  </div>
+  <div class="tabs" id="tabs"></div>
+
+  <div class="tools">
+    <input type="search" id="busca" placeholder="Buscar pelo título" aria-label="Buscar pelo título">
+    <select id="filtroResp" aria-label="Filtrar por responsável"></select>
+  </div>
+
+  <div id="lista"></div>
+</div>
+
+<dialog id="dlg">
+  <form id="frm" novalidate>
+    <h2 id="dlgTitulo">Novo impedimento</h2>
+    <label>Título
+      <input id="f-titulo" maxlength="100" autocomplete="off">
+      <div class="err" id="e-titulo"></div>
+    </label>
+    <label>Descrição do problema
+      <textarea id="f-desc" maxlength="1000"></textarea>
+      <div class="err" id="e-desc"></div>
+    </label>
+    <label>Responsável
+      <input id="f-resp" maxlength="60" autocomplete="off">
+      <div class="err" id="e-resp"></div>
+    </label>
+    <label>Status
+      <select id="f-status">
+        <option>Pendente</option><option>Em andamento</option><option>Resolvido</option>
+      </select>
+    </label>
+    <div class="anexos">
+      <div class="tit">Imagens (opcional)</div>
+      <input type="file" id="f-img" accept="image/*" multiple aria-describedby="dica-img">
+      <small id="dica-img">Até 3 imagens por impedimento, como prints de erro. Elas ficam guardadas neste navegador.</small>
+      <div class="err" id="e-img"></div>
+      <div class="previa" id="previa"></div>
+    </div>
+    <div class="foot">
+      <button type="button" class="btn" id="cancelar">Cancelar</button>
+      <button type="submit" class="btn primary">Salvar impedimento</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="lightbox">
+  <img id="lb-img" alt="Imagem anexada ao impedimento">
+  <div class="foot"><button type="button" class="btn" id="lb-fechar">Fechar</button></div>
+</dialog>
+
+<script>
+const STATUS = ["Pendente", "Em andamento", "Resolvido"];
+const KEY = "destravatime:v1";
+let itens = [];
+let filtroStatus = "Todos";
+let editandoId = null;
+
+const $ = (id) => document.getElementById(id);
+
+function carregar() {
+  try { itens = JSON.parse(localStorage.getItem(KEY)) || []; }
+  catch (e) { itens = []; }
+}
+function salvar() {
+  try { localStorage.setItem(KEY, JSON.stringify(itens)); return true; }
+  catch (e) {
+    alert("Não foi possível salvar neste navegador. Se houver muitas imagens, remova algumas e tente de novo.");
+    return false;
+  }
+}
+function el(tag, props, ...filhos) {
+  const n = document.createElement(tag);
+  Object.assign(n, props || {});
+  filhos.forEach((f) => n.append(f));
+  return n;
+}
+function fmtData(iso) {
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function renderResumo() {
+  const total = itens.length;
+  const cont = { Todos: total };
+  STATUS.forEach((s) => (cont[s] = itens.filter((i) => i.status === s).length));
+  const barras = $("meter").children;
+  [ "Pendente", "Em andamento", "Resolvido" ].forEach((s, k) => {
+    barras[k].style.width = total ? (cont[s] / total) * 100 + "%" : "0%";
+  });
+  const tabs = $("tabs");
+  tabs.replaceChildren();
+  ["Todos", ...STATUS].forEach((s) => {
+    const b = el("button", { className: "tab", type: "button" }, el("b", { textContent: cont[s] }), el("small", { textContent: s }));
+    b.setAttribute("aria-pressed", String(filtroStatus === s));
+    b.onclick = () => { filtroStatus = s; render(); };
+    tabs.append(b);
+  });
+}
+
+function renderResponsaveis() {
+  const sel = $("filtroResp");
+  const atual = sel.value || "";
+  const nomes = [...new Set(itens.map((i) => i.responsavel))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  sel.replaceChildren(el("option", { value: "", textContent: "Todos os responsáveis" }));
+  nomes.forEach((n) => sel.append(el("option", { value: n, textContent: n })));
+  sel.value = nomes.includes(atual) ? atual : "";
+}
+
+function renderLista() {
+  const q = $("busca").value.trim().toLowerCase();
+  const resp = $("filtroResp").value;
+  const vis = itens
+    .filter((i) => filtroStatus === "Todos" || i.status === filtroStatus)
+    .filter((i) => !resp || i.responsavel === resp)
+    .filter((i) => !q || i.titulo.toLowerCase().includes(q))
+    .sort((a, b) => b.criado.localeCompare(a.criado));
+
+  const lista = $("lista");
+  lista.replaceChildren();
+
+  if (!vis.length) {
+    const vazio = itens.length
+      ? el("div", { className: "empty" }, el("h2", { textContent: "Nenhum resultado" }), el("p", { textContent: "Mude o filtro ou a busca para ver outros impedimentos." }))
+      : el("div", { className: "empty" }, el("h2", { textContent: "Nada travado por aqui" }), el("p", { textContent: "Registre o primeiro impedimento para a equipe começar a destravar." }));
+    lista.append(vazio);
+    return;
+  }
+
+  vis.forEach((i) => {
+    const sel = el("select", { className: "st", ariaLabel: "Status de " + i.titulo });
+    sel.dataset.s = i.status;
+    STATUS.forEach((s) => sel.append(el("option", { textContent: s, selected: s === i.status })));
+    sel.onchange = () => { i.status = sel.value; salvar(); render(); };
+
+    const editar = el("button", { className: "btn small", type: "button", textContent: "Editar" });
+    editar.onclick = () => abrir(i);
+    const excluir = el("button", { className: "btn small danger", type: "button", textContent: "Excluir" });
+    excluir.onclick = () => {
+      if (confirm("Excluir o impedimento “" + i.titulo + "”? Essa ação não pode ser desfeita.")) {
+        itens = itens.filter((x) => x.id !== i.id); salvar(); render();
+      }
+    };
+
+    const quem = el("div", { className: "who" }, "Responsável: ", el("strong", { textContent: i.responsavel }), " · Criado em " + fmtData(i.criado));
+    const miniaturas = el("div", { className: "thumbs" });
+    (i.imagens || []).forEach((src, n) => {
+      const b = el("button", { type: "button", ariaLabel: "Ampliar imagem " + (n + 1) + " de " + i.titulo });
+      b.append(el("img", { src, alt: "Imagem " + (n + 1) + " anexada a " + i.titulo }));
+      b.onclick = () => { $("lb-img").src = src; $("lightbox").showModal(); };
+      miniaturas.append(b);
+    });
+    const card = el("article", { className: "item" },
+      el("h3", { textContent: i.titulo }),
+      el("p", { textContent: i.descricao }),
+      miniaturas,
+      el("div", { className: "row" }, quem, el("div", { className: "acts" }, sel, editar, excluir))
+    );
+    card.dataset.s = i.status;
+    lista.append(card);
+  });
+}
+
+function render() { renderResumo(); renderResponsaveis(); renderLista(); }
+
+/* formulário */
+function limparErros() { ["titulo", "desc", "resp"].forEach((k) => ($("e-" + k).textContent = "")); }
+function abrir(item) {
+  limparErros();
+  editandoId = item ? item.id : null;
+  $("dlgTitulo").textContent = item ? "Editar impedimento" : "Novo impedimento";
+  $("f-titulo").value = item ? item.titulo : "";
+  $("f-desc").value = item ? item.descricao : "";
+  $("f-resp").value = item ? item.responsavel : "";
+  $("f-status").value = item ? item.status : "Pendente";
+  $("f-img").value = "";
+  $("e-img").textContent = "";
+  imgsTemp = item ? [...(item.imagens || [])] : [];
+  renderPrevia();
+  $("dlg").showModal();
+  $("f-titulo").focus();
+}
+
+$("novo").onclick = () => abrir(null);
+$("cancelar").onclick = () => $("dlg").close();
+$("frm").onsubmit = (ev) => {
+  ev.preventDefault();
+  limparErros();
+  const titulo = $("f-titulo").value.trim();
+  const descricao = $("f-desc").value.trim();
+  const responsavel = $("f-resp").value.trim();
+  let ok = true;
+  if (!titulo) { $("e-titulo").textContent = "Informe um título para o impedimento."; ok = false; }
+  if (!descricao) { $("e-desc").textContent = "Descreva o problema para a equipe entender."; ok = false; }
+  if (!responsavel) { $("e-resp").textContent = "Indique quem vai resolver."; ok = false; }
+  if (!ok) return;
+
+  const status = $("f-status").value;
+  if (editandoId) {
+    const i = itens.find((x) => x.id === editandoId);
+    Object.assign(i, { titulo, descricao, responsavel, status, imagens: [...imgsTemp] });
+  } else {
+    itens.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), titulo, descricao, responsavel, status, imagens: [...imgsTemp], criado: new Date().toISOString() });
+  }
+  salvar();
+  $("dlg").close();
+  render();
+};
+
+/* imagens anexadas: redimensiona e comprime antes de guardar */
+const MAX_IMGS = 3;
+let imgsTemp = [];
+function lerImagem(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onerror = () => reject(new Error("leitura"));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("imagem"));
+      img.onload = () => {
+        const esc = Math.min(1, 900 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * esc);
+        c.height = Math.round(img.height * esc);
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function renderPrevia() {
+  const box = $("previa");
+  box.replaceChildren();
+  imgsTemp.forEach((src, n) => {
+    const rm = el("button", { type: "button", textContent: "×", ariaLabel: "Remover imagem " + (n + 1) });
+    rm.onclick = () => { imgsTemp.splice(n, 1); renderPrevia(); };
+    box.append(el("figure", {}, el("img", { src, alt: "Prévia da imagem " + (n + 1) }), rm));
+  });
+}
+$("f-img").onchange = async (ev) => {
+  $("e-img").textContent = "";
+  for (const file of Array.from(ev.target.files)) {
+    if (imgsTemp.length >= MAX_IMGS) { $("e-img").textContent = "Limite de " + MAX_IMGS + " imagens por impedimento."; break; }
+    if (!file.type.startsWith("image/")) { $("e-img").textContent = "Escolha apenas arquivos de imagem."; continue; }
+    try { imgsTemp.push(await lerImagem(file)); }
+    catch (e) { $("e-img").textContent = "Não foi possível ler a imagem “" + file.name + "”."; }
+  }
+  ev.target.value = "";
+  renderPrevia();
+};
+$("lb-fechar").onclick = () => $("lightbox").close();
+$("lightbox").onclick = (ev) => { if (ev.target.id === "lightbox") $("lightbox").close(); };
+
+$("busca").oninput = renderLista;
+$("filtroResp").onchange = renderLista;
+
+carregar();
+render();
+</script>
+</body>
+</html>
