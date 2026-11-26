@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DestravaTime</title>
+<title>DestravaTime — Gestão de Incidentes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -14,6 +14,7 @@
   --prog:#2A55C8;--prog-bg:#E1EAFB;
   --done:#2B7A4B;--done-bg:#DDF1E5;
   --danger:#B3261E;--alta:#B3261E;--alta-bg:#FBE0DE;
+  --tag-bg:#E7EEF1;--tag-ink:#243B47;
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
 }
@@ -24,7 +25,9 @@
     --pend:#F0B64E;--pend-bg:#3A2D12;
     --prog:#8FB0FF;--prog-bg:#1B2B54;
     --done:#6FD39A;--done-bg:#15392A;
-    --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;color-scheme:dark;
+    --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;
+    --tag-bg:#21343D;--tag-ink:#CBE0EA;
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
@@ -33,25 +36,26 @@
   --pend:#F0B64E;--pend-bg:#3A2D12;
   --prog:#8FB0FF;--prog-bg:#1B2B54;
   --done:#6FD39A;--done-bg:#15392A;
-  --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;color-scheme:dark;
+  --danger:#FF8A80;--alta:#FF8A80;--alta-bg:#4A1C19;
+  --tag-bg:#21343D;--tag-ink:#CBE0EA;
+  color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Instrument Sans",system-ui,sans-serif}
 .wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px}
-h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;margin:0;line-height:1.1}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;margin:0;line-height:1.15}
 header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:28px}
 h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.03em}
-.lead{margin:8px 0 0;color:var(--muted);max-width:46ch}
+.lead{margin:8px 0 0;color:var(--muted);max-width:48ch}
 button,select,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brand);outline-offset:2px}
-.btn{border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn{border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover{border-color:var(--brand)}
 .btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
 .btn.danger{color:var(--danger)}
-.btn.small{padding:6px 12px;font-size:.9rem}
+.btn.small{padding:6px 12px;font-size:.88rem}
 
-/* barra de progresso: o elemento de destaque */
 .meter{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin-bottom:12px}
 .meter span{display:block;transition:width .35s ease}
 .m-p{background:var(--pend)}.m-a{background:var(--prog)}.m-r{background:var(--done)}
@@ -69,27 +73,31 @@ button,select,input,textarea{font:inherit;color:inherit}
 .item[data-s="Em andamento"]{border-left-color:var(--prog)}
 .item[data-s="Resolvido"]{border-left-color:var(--done)}
 .item[data-s="Resolvido"] h3{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
-.item h3{font-size:1.2rem;margin-bottom:6px;overflow-wrap:anywhere}
-.item p{margin:0 0 12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.item h3{font-size:1.2rem;margin-bottom:6px;overflow-wrap:anywhere;cursor:pointer}
+.item h3:hover{color:var(--brand)}
+.item .desc-curta{margin:0 0 10px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.meta-extra{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.86rem;color:var(--muted);margin-bottom:10px}
+.meta-extra span strong{color:var(--ink)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.who{font-size:.9rem;color:var(--muted)}
+.who{font-size:.88rem;color:var(--muted)}
 .who strong{color:var(--ink)}
 .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .st{border-radius:999px;border:1px solid transparent;padding:6px 10px;font-weight:600;cursor:pointer}
 .st[data-s="Pendente"]{background:var(--pend-bg);color:var(--pend)}
 .st[data-s="Em andamento"]{background:var(--prog-bg);color:var(--prog)}
 .st[data-s="Resolvido"]{background:var(--done-bg);color:var(--done)}
-.prirow{margin-bottom:6px}
-.pri{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700}
+.prirow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.pri,.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:700}
 .pri[data-p="Alta"]{background:var(--alta-bg);color:var(--alta)}
 .pri[data-p="Média"]{background:var(--pend-bg);color:var(--pend)}
 .pri[data-p="Baixa"]{background:var(--done-bg);color:var(--done)}
+.tag{background:var(--tag-bg);color:var(--tag-ink);font-weight:600}
 .empty{text-align:center;border:2px dashed var(--line);border-radius:12px;padding:40px 20px;color:var(--muted)}
 .empty h2{color:var(--ink);font-size:1.4rem;margin-bottom:6px}
 
 .anexos{margin:0 0 14px}
 .anexos .tit{font-weight:600;margin-bottom:6px}
-.anexos small{display:block;color:var(--muted);font-weight:400;margin-top:6px}
+.anexos small,.hint{display:block;color:var(--muted);font-weight:400;font-size:.84rem;margin-top:4px}
 .anexos input[type=file]{margin-top:6px}
 .previa,.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .previa figure{margin:0;position:relative}
@@ -98,17 +106,38 @@ button,select,input,textarea{font:inherit;color:inherit}
 .thumbs{margin:0 0 12px}
 .thumbs button{padding:0;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer;overflow:hidden}
 .thumbs img{display:block;width:84px;height:84px;object-fit:cover}
+
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px;width:min(580px,calc(100vw - 24px));max-height:90vh;overflow-y:auto}
+dialog::backdrop{background:rgba(5,15,20,.55)}
+dialog h2{font-size:1.5rem;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+label{display:block;font-weight:600;margin:0 0 12px;font-size:.94rem}
+label input,label textarea,label select{display:block;width:100%;margin-top:5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-weight:400}
+label select:disabled{opacity:.72;cursor:not-allowed}
+label textarea{min-height:115px;resize:vertical}
+.desc-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+.err{color:var(--danger);font-weight:500;font-size:.86rem;margin-top:4px;min-height:1.1em}
+.sec-sep{border:0;border-top:1px solid var(--line);margin:14px 0}
+.sec-lbl{font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:0 0 10px}
+.foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+
 #lightbox{width:min(900px,calc(100vw - 24px));text-align:center}
 #lightbox img{max-width:100%;max-height:70vh;border-radius:8px}
-dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px;width:min(520px,calc(100vw - 24px))}
-dialog::backdrop{background:rgba(5,15,20,.55)}
-dialog h2{font-size:1.6rem;margin-bottom:16px}
-label{display:block;font-weight:600;margin:0 0 14px}
-label input,label textarea,label select{display:block;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-weight:400}
-label textarea{min-height:110px;resize:vertical}
-.err{color:var(--danger);font-weight:500;font-size:.9rem;margin-top:4px;min-height:1.2em}
-.foot{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
-@media (max-width:560px){.tabs{grid-template-columns:repeat(2,1fr)}}
+
+/* Pop-up de detalhes (HU-13) */
+#dlgDetalhes{width:min(640px,calc(100vw - 24px))}
+.det-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.det-desc{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 16px;font-size:.95rem}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.det-box{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.det-box small{display:block;color:var(--muted);font-size:.78rem;margin-bottom:2px}
+.det-box strong{display:block;font-size:.93rem;overflow-wrap:anywhere}
+.emails-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+
+@media (max-width:560px){
+  .tabs{grid-template-columns:repeat(2,1fr)}
+  .grid2,.det-grid{grid-template-columns:1fr}
+}
 @media (prefers-reduced-motion:reduce){.meter span{transition:none}}
 </style>
 </head>
@@ -117,104 +146,226 @@ label textarea{min-height:110px;resize:vertical}
   <header>
     <div>
       <h1>DestravaTime</h1>
-      <p class="lead">Registre o que está travando a equipe, diga quem resolve e acompanhe até destravar.</p>
+      <p class="lead">Registre incidentes que travam a equipe, defina responsáveis e acompanhe até a resolução.</p>
     </div>
-    <button class="btn primary" id="novo">Novo impedimento</button>
+    <button class="btn primary" id="novo">Novo incidente</button>
   </header>
 
-  <div class="meter" role="img" aria-label="Proporção de impedimentos por status" id="meter">
+  <div class="meter" role="img" aria-label="Proporção de incidentes por status" id="meter">
     <span class="m-p"></span><span class="m-a"></span><span class="m-r"></span>
   </div>
   <div class="tabs" id="tabs"></div>
 
   <div class="tools">
-    <input type="search" id="busca" placeholder="Buscar pelo título" aria-label="Buscar pelo título">
+    <input type="search" id="busca" placeholder="Buscar pelo título ou área" aria-label="Buscar pelo título ou área">
     <select id="filtroResp" aria-label="Filtrar por responsável"></select>
-    <select id="ordem" aria-label="Ordenar impedimentos">
+    <select id="filtroArea" aria-label="Filtrar por área"></select>
+    <select id="ordem" aria-label="Ordenar incidentes">
       <option value="recentes">Mais recentes</option>
       <option value="prioridade">Prioridade (Alta primeiro)</option>
     </select>
+    <button type="button" class="btn" id="exp-csv">Exportar CSV</button>
+    <button type="button" class="btn" id="exp-json">Exportar JSON</button>
   </div>
 
   <div id="lista"></div>
 </div>
 
+<!-- Formulário de cadastro e edição (HU-01, HU-04, HU-09, HU-10, HU-12, HU-14, HU-15, HU-16, HU-17, HU-18) -->
 <dialog id="dlg">
   <form id="frm" novalidate>
-    <h2 id="dlgTitulo">Novo impedimento</h2>
-    <label>Título
-      <input id="f-titulo" maxlength="100" autocomplete="off">
+    <h2 id="dlgTitulo">Novo incidente</h2>
+
+    <label>Título do incidente *
+      <input id="f-titulo" maxlength="100" autocomplete="off" placeholder="Ex.: Erro 500 ao finalizar pedido">
       <div class="err" id="e-titulo"></div>
     </label>
-    <label>Descrição do problema
-      <textarea id="f-desc" maxlength="1000"></textarea>
-      <div class="err" id="e-desc"></div>
+
+    <label>Descrição detalhada do problema *
+      <textarea id="f-desc" maxlength="3000" placeholder="Descreva o contexto, o impacto na equipe e, se possível, como reproduzir o incidente..."></textarea>
+      <div class="desc-meta">
+        <div class="err" id="e-desc"></div>
+        <small class="hint" id="cnt-desc">0 / 3000</small>
+      </div>
     </label>
-    <label>Responsável
-      <input id="f-resp" maxlength="60" autocomplete="off">
-      <div class="err" id="e-resp"></div>
+
+    <div class="grid2">
+      <label>Responsável pela resolução *
+        <input id="f-resp" maxlength="60" autocomplete="off" placeholder="Quem vai atuar">
+        <div class="err" id="e-resp"></div>
+      </label>
+
+      <label>Área do incidente
+        <input id="f-area" list="areas-lista" maxlength="50" autocomplete="off" placeholder="Ex.: Tecnologia, Operações">
+        <datalist id="areas-lista">
+          <option value="Tecnologia / TI"></option>
+          <option value="Infraestrutura"></option>
+          <option value="Produto"></option>
+          <option value="Operações"></option>
+          <option value="Comercial"></option>
+          <option value="Financeiro"></option>
+          <option value="Atendimento"></option>
+        </datalist>
+      </label>
+    </div>
+
+    <div class="grid2">
+      <label>Prioridade
+        <select id="f-prio">
+          <option>Alta</option><option selected>Média</option><option>Baixa</option>
+        </select>
+      </label>
+
+      <label>Status
+        <select id="f-status">
+          <option>Pendente</option><option>Em andamento</option><option>Resolvido</option>
+        </select>
+        <small class="hint" id="dica-status"></small>
+      </label>
+    </div>
+
+    <hr class="sec-sep">
+    <div class="sec-lbl">Dados do solicitante e afetados</div>
+
+    <div class="grid2">
+      <label>Nome do solicitante
+        <input id="f-sol-nome" maxlength="60" autocomplete="off" placeholder="Quem abriu o chamado">
+      </label>
+
+      <label>Departamento do solicitante
+        <input id="f-sol-depto" maxlength="50" autocomplete="off" placeholder="Ex.: Engenharia, Suporte">
+      </label>
+    </div>
+
+    <label>E-mail do solicitante
+      <input type="email" id="f-sol-email" maxlength="100" autocomplete="off" placeholder="solicitante@empresa.com">
+      <div class="err" id="e-sol-email"></div>
     </label>
-    <label>Status
-      <select id="f-status">
-        <option>Pendente</option><option>Em andamento</option><option>Resolvido</option>
-      </select>
+
+    <label>E-mails dos afetados (separados por vírgula)
+      <input type="text" id="f-afetados" maxlength="400" autocomplete="off" placeholder="ex: ana@empresa.com, bruno@empresa.com">
+      <small class="hint">Usados para notificação rápida via cliente de e-mail (mailto).</small>
+      <div class="err" id="e-afetados"></div>
     </label>
-    <label>Prioridade
-      <select id="f-prio">
-        <option>Alta</option><option selected>Média</option><option>Baixa</option>
-      </select>
-    </label>
+
+    <hr class="sec-sep">
     <div class="anexos">
-      <div class="tit">Imagens (opcional)</div>
+      <div class="tit">Imagens / prints (opcional)</div>
       <input type="file" id="f-img" accept="image/*" multiple aria-describedby="dica-img">
-      <small id="dica-img">Até 3 imagens por impedimento, como prints de erro. Elas ficam guardadas neste navegador.</small>
+      <small id="dica-img">Até 3 imagens por incidente. Elas ficam guardadas neste navegador.</small>
       <div class="err" id="e-img"></div>
       <div class="previa" id="previa"></div>
     </div>
+
     <div class="foot">
       <button type="button" class="btn" id="cancelar">Cancelar</button>
-      <button type="submit" class="btn primary">Salvar impedimento</button>
+      <button type="submit" class="btn primary">Salvar incidente</button>
     </div>
   </form>
 </dialog>
 
+<!-- Pop-up de detalhes do incidente (HU-13 + HU-19) -->
+<dialog id="dlgDetalhes">
+  <div class="det-head" id="det-badges"></div>
+  <h2 id="det-titulo"></h2>
+  <div class="det-desc" id="det-desc"></div>
+  <div class="det-grid" id="det-grid"></div>
+  <div id="det-afetados-wrap" style="margin-bottom:14px;display:none">
+    <div class="sec-lbl">E-mails dos afetados</div>
+    <div class="emails-list" id="det-afetados"></div>
+  </div>
+  <div id="det-imgs" class="thumbs"></div>
+  <div class="foot">
+    <a class="btn" id="det-mailto" style="display:none">Avisar afetados por e-mail</a>
+    <button type="button" class="btn" id="det-editar">Editar</button>
+    <button type="button" class="btn primary" id="det-fechar">Fechar</button>
+  </div>
+</dialog>
+
+<!-- Lightbox para ampliar imagens -->
 <dialog id="lightbox">
-  <img id="lb-img" alt="Imagem anexada ao impedimento">
+  <img id="lb-img" alt="Imagem anexada ao incidente">
   <div class="foot"><button type="button" class="btn" id="lb-fechar">Fechar</button></div>
 </dialog>
 
 <script>
 const STATUS = ["Pendente", "Em andamento", "Resolvido"];
 const PRIO = ["Alta", "Média", "Baixa"];
-const KEY = "destravatime:v1";
+const KEY = "destravatime:v1"; // Mantida para preservar dados salvos anteriormente (HU-17)
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 let itens = [];
 let filtroStatus = "Todos";
 let editandoId = null;
 
 const $ = (id) => document.getElementById(id);
 
+function normalizarItem(i) {
+  if (!PRIO.includes(i.prioridade)) i.prioridade = "Média";
+  if (!STATUS.includes(i.status)) i.status = "Pendente";
+  if (typeof i.area !== "string") i.area = "";
+  if (typeof i.solicitanteNome !== "string") i.solicitanteNome = "";
+  if (typeof i.solicitanteEmail !== "string") i.solicitanteEmail = "";
+  if (typeof i.departamento !== "string") i.departamento = "";
+  if (!Array.isArray(i.afetados)) i.afetados = [];
+  if (!Array.isArray(i.imagens)) i.imagens = [];
+  return i;
+}
+
 function carregar() {
   try {
-    itens = JSON.parse(localStorage.getItem(KEY)) || [];
-    itens.forEach((i) => { if (!PRIO.includes(i.prioridade)) i.prioridade = "Média"; });
+    itens = (JSON.parse(localStorage.getItem(KEY)) || []).map(normalizarItem);
+  } catch (e) {
+    itens = [];
   }
-  catch (e) { itens = []; }
 }
+
 function salvar() {
-  try { localStorage.setItem(KEY, JSON.stringify(itens)); return true; }
-  catch (e) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(itens));
+    return true;
+  } catch (e) {
     alert("Não foi possível salvar neste navegador. Se houver muitas imagens, remova algumas e tente de novo.");
     return false;
   }
 }
+
 function el(tag, props, ...filhos) {
   const n = document.createElement(tag);
   Object.assign(n, props || {});
   filhos.forEach((f) => n.append(f));
   return n;
 }
+
 function fmtData(iso) {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/* HU-19: monta link mailto: pronto para abrir o programa de e-mail */
+function montarMailto(item) {
+  const para = (item.afetados || []).join(",");
+  const assunto = `[DestravaTime] Incidente (${item.prioridade}): ${item.titulo}`;
+  const linhas = [
+    `Olá,`,
+    ``,
+    `Um incidente registrado no DestravaTime envolve você como pessoa afetada:`,
+    ``,
+    `Título: ${item.titulo}`,
+    `Status: ${item.status}`,
+    `Prioridade: ${item.prioridade}`,
+    item.area ? `Área: ${item.area}` : null,
+    `Responsável: ${item.responsavel}`,
+    item.solicitanteNome ? `Solicitante: ${item.solicitanteNome}${item.departamento ? " (" + item.departamento + ")" : ""}` : null,
+    ``,
+    `Descrição detalhada:`,
+    item.descricao,
+  ].filter((l) => l !== null).join("\n");
+
+  const params = new URLSearchParams();
+  if (item.solicitanteEmail) params.set("cc", item.solicitanteEmail);
+  params.set("subject", assunto);
+  params.set("body", linhas);
+  return `mailto:${encodeURIComponent(para).replace(/%2C/g, ",")}?${params.toString().replace(/\+/g, "%20")}`;
 }
 
 function renderResumo() {
@@ -222,7 +373,7 @@ function renderResumo() {
   const cont = { Todos: total };
   STATUS.forEach((s) => (cont[s] = itens.filter((i) => i.status === s).length));
   const barras = $("meter").children;
-  [ "Pendente", "Em andamento", "Resolvido" ].forEach((s, k) => {
+  STATUS.forEach((s, k) => {
     barras[k].style.width = total ? (cont[s] / total) * 100 + "%" : "0%";
   });
   const tabs = $("tabs");
@@ -235,22 +386,31 @@ function renderResumo() {
   });
 }
 
-function renderResponsaveis() {
-  const sel = $("filtroResp");
-  const atual = sel.value || "";
+function renderFiltros() {
+  const selResp = $("filtroResp");
+  const atualResp = selResp.value || "";
   const nomes = [...new Set(itens.map((i) => i.responsavel))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  sel.replaceChildren(el("option", { value: "", textContent: "Todos os responsáveis" }));
-  nomes.forEach((n) => sel.append(el("option", { value: n, textContent: n })));
-  sel.value = nomes.includes(atual) ? atual : "";
+  selResp.replaceChildren(el("option", { value: "", textContent: "Todos os responsáveis" }));
+  nomes.forEach((n) => selResp.append(el("option", { value: n, textContent: n })));
+  selResp.value = nomes.includes(atualResp) ? atualResp : "";
+
+  const selArea = $("filtroArea");
+  const atualArea = selArea.value || "";
+  const areas = [...new Set(itens.map((i) => i.area).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  selArea.replaceChildren(el("option", { value: "", textContent: "Todas as áreas" }));
+  areas.forEach((a) => selArea.append(el("option", { value: a, textContent: a })));
+  selArea.value = areas.includes(atualArea) ? atualArea : "";
 }
 
-function renderLista() {
+function listaVisivel() {
   const q = $("busca").value.trim().toLowerCase();
   const resp = $("filtroResp").value;
-  const vis = itens
+  const area = $("filtroArea").value;
+  return itens
     .filter((i) => filtroStatus === "Todos" || i.status === filtroStatus)
     .filter((i) => !resp || i.responsavel === resp)
-    .filter((i) => !q || i.titulo.toLowerCase().includes(q))
+    .filter((i) => !area || i.area === area)
+    .filter((i) => !q || i.titulo.toLowerCase().includes(q) || (i.area || "").toLowerCase().includes(q))
     .sort((a, b) => {
       if ($("ordem").value === "prioridade") {
         const d = PRIO.indexOf(a.prioridade) - PRIO.indexOf(b.prioridade);
@@ -258,14 +418,76 @@ function renderLista() {
       }
       return b.criado.localeCompare(a.criado);
     });
+}
 
+/* HU-13: abre pop-up de detalhes do incidente */
+function abrirDetalhes(item) {
+  const badges = $("det-badges");
+  badges.replaceChildren();
+  const stBadge = el("span", { className: "st", textContent: item.status });
+  stBadge.dataset.s = item.status;
+  const priBadge = el("span", { className: "pri", textContent: "Prioridade " + item.prioridade });
+  priBadge.dataset.p = item.prioridade;
+  badges.append(stBadge, priBadge);
+  if (item.area) badges.append(el("span", { className: "tag", textContent: "Área: " + item.area }));
+
+  $("det-titulo").textContent = item.titulo;
+  $("det-desc").textContent = item.descricao;
+
+  const grid = $("det-grid");
+  grid.replaceChildren();
+  const campos = [
+    ["Responsável", item.responsavel],
+    ["Criado em", fmtData(item.criado)],
+    ["Solicitante", item.solicitanteNome || "Não informado"],
+    ["Departamento", item.departamento || "Não informado"],
+    ["E-mail do solicitante", item.solicitanteEmail || "Não informado"],
+    ["Área do incidente", item.area || "Não informada"],
+  ];
+  campos.forEach(([k, v]) => {
+    grid.append(el("div", { className: "det-box" }, el("small", { textContent: k }), el("strong", { textContent: v })));
+  });
+
+  const afWrap = $("det-afetados-wrap");
+  const afBox = $("det-afetados");
+  afBox.replaceChildren();
+  if (item.afetados && item.afetados.length) {
+    afWrap.style.display = "block";
+    item.afetados.forEach((em) => afBox.append(el("span", { className: "tag", textContent: em })));
+  } else {
+    afWrap.style.display = "none";
+  }
+
+  const imgs = $("det-imgs");
+  imgs.replaceChildren();
+  (item.imagens || []).forEach((src, n) => {
+    const b = el("button", { type: "button", ariaLabel: "Ampliar imagem " + (n + 1) });
+    b.append(el("img", { src, alt: "Imagem " + (n + 1) + " anexada ao incidente" }));
+    b.onclick = () => { $("lb-img").src = src; $("lightbox").showModal(); };
+    imgs.append(b);
+  });
+
+  const mailtoBtn = $("det-mailto");
+  if (item.afetados && item.afetados.length) {
+    mailtoBtn.href = montarMailto(item);
+    mailtoBtn.style.display = "inline-flex";
+  } else {
+    mailtoBtn.style.display = "none";
+  }
+
+  $("det-editar").onclick = () => { $("dlgDetalhes").close(); abrir(item); };
+  $("dlgDetalhes").showModal();
+}
+
+function renderLista() {
+  const vis = listaVisivel();
   const lista = $("lista");
   lista.replaceChildren();
 
   if (!vis.length) {
     const vazio = itens.length
-      ? el("div", { className: "empty" }, el("h2", { textContent: "Nenhum resultado" }), el("p", { textContent: "Mude o filtro ou a busca para ver outros impedimentos." }))
-      : el("div", { className: "empty" }, el("h2", { textContent: "Nada travado por aqui" }), el("p", { textContent: "Registre o primeiro impedimento para a equipe começar a destravar." }));
+      ? el("div", { className: "empty" }, el("h2", { textContent: "Nenhum resultado" }), el("p", { textContent: "Mude o filtro ou a busca para ver outros incidentes." }))
+      : el("div", { className: "empty" }, el("h2", { textContent: "Nenhum incidente aberto" }), el("p", { textContent: "Registre o primeiro incidente para a equipe começar a atuar." }));
     lista.append(vazio);
     return;
   }
@@ -276,18 +498,48 @@ function renderLista() {
     STATUS.forEach((s) => sel.append(el("option", { textContent: s, selected: s === i.status })));
     sel.onchange = () => { i.status = sel.value; salvar(); render(); };
 
+    const detalhes = el("button", { className: "btn small", type: "button", textContent: "Detalhes" });
+    detalhes.onclick = () => abrirDetalhes(i);
+
     const editar = el("button", { className: "btn small", type: "button", textContent: "Editar" });
     editar.onclick = () => abrir(i);
+
     const excluir = el("button", { className: "btn small danger", type: "button", textContent: "Excluir" });
     excluir.onclick = () => {
-      if (confirm("Excluir o impedimento “" + i.titulo + "”? Essa ação não pode ser desfeita.")) {
-        itens = itens.filter((x) => x.id !== i.id); salvar(); render();
+      if (confirm("Excluir o incidente “" + i.titulo + "”? Essa ação não pode ser desfeita.")) {
+        itens = itens.filter((x) => x.id !== i.id);
+        salvar();
+        render();
       }
     };
 
-    const quem = el("div", { className: "who" }, "Responsável: ", el("strong", { textContent: i.responsavel }), " · Criado em " + fmtData(i.criado));
+    const acoes = [sel, detalhes];
+    if (i.afetados && i.afetados.length) {
+      const avisar = el("a", { className: "btn small", href: montarMailto(i), textContent: "Avisar afetados" });
+      acoes.push(avisar);
+    }
+    acoes.push(editar, excluir);
+
+    const badgesRow = el("div", { className: "prirow" });
     const pri = el("span", { className: "pri", textContent: "Prioridade " + i.prioridade });
     pri.dataset.p = i.prioridade;
+    badgesRow.append(pri);
+    if (i.area) badgesRow.append(el("span", { className: "tag", textContent: i.area }));
+    if (i.afetados && i.afetados.length) {
+      badgesRow.append(el("span", { className: "tag", textContent: i.afetados.length + (i.afetados.length === 1 ? " afetado" : " afetados") }));
+    }
+
+    const tituloEl = el("h3", { textContent: i.titulo, title: "Clique para ver detalhes" });
+    tituloEl.onclick = () => abrirDetalhes(i);
+
+    const metaExtra = el("div", { className: "meta-extra" });
+    if (i.solicitanteNome || i.departamento) {
+      const txt = [i.solicitanteNome, i.departamento].filter(Boolean).join(" · ");
+      metaExtra.append(el("span", {}, "Solicitante: ", el("strong", { textContent: txt })));
+    }
+
+    const quem = el("div", { className: "who" }, "Responsável: ", el("strong", { textContent: i.responsavel }), " · Criado em " + fmtData(i.criado));
+
     const miniaturas = el("div", { className: "thumbs" });
     (i.imagens || []).forEach((src, n) => {
       const b = el("button", { type: "button", ariaLabel: "Ampliar imagem " + (n + 1) + " de " + i.titulo });
@@ -295,67 +547,129 @@ function renderLista() {
       b.onclick = () => { $("lb-img").src = src; $("lightbox").showModal(); };
       miniaturas.append(b);
     });
-    const card = el("article", { className: "item" },
-      el("div", { className: "prirow" }, pri),
-      el("h3", { textContent: i.titulo }),
-      el("p", { textContent: i.descricao }),
-      miniaturas,
-      el("div", { className: "row" }, quem, el("div", { className: "acts" }, sel, editar, excluir))
-    );
+
+    const partes = [badgesRow, tituloEl, el("p", { className: "desc-curta", textContent: i.descricao })];
+    if (metaExtra.childNodes.length) partes.push(metaExtra);
+    if (miniaturas.childNodes.length) partes.push(miniaturas);
+    partes.push(el("div", { className: "row" }, quem, el("div", { className: "acts" }, ...acoes)));
+
+    const card = el("article", { className: "item" }, ...partes);
     card.dataset.s = i.status;
     lista.append(card);
   });
 }
 
-function render() { renderResumo(); renderResponsaveis(); renderLista(); }
+function render() { renderResumo(); renderFiltros(); renderLista(); }
 
-/* formulário */
-function limparErros() { ["titulo", "desc", "resp"].forEach((k) => ($("e-" + k).textContent = "")); }
+/* Formulário */
+function limparErros() {
+  ["titulo", "desc", "resp", "sol-email", "afetados", "img"].forEach((k) => ($("e-" + k).textContent = ""));
+}
+
+function atualizarContadorDesc() {
+  $("cnt-desc").textContent = $("f-desc").value.length + " / 3000";
+}
+
 function abrir(item) {
   limparErros();
   editandoId = item ? item.id : null;
-  $("dlgTitulo").textContent = item ? "Editar impedimento" : "Novo impedimento";
+  $("dlgTitulo").textContent = item ? "Editar incidente" : "Novo incidente";
   $("f-titulo").value = item ? item.titulo : "";
   $("f-desc").value = item ? item.descricao : "";
   $("f-resp").value = item ? item.responsavel : "";
-  $("f-status").value = item ? item.status : "Pendente";
+  $("f-area").value = item ? (item.area || "") : "";
   $("f-prio").value = item ? item.prioridade : "Média";
+  $("f-sol-nome").value = item ? (item.solicitanteNome || "") : "";
+  $("f-sol-depto").value = item ? (item.departamento || "") : "";
+  $("f-sol-email").value = item ? (item.solicitanteEmail || "") : "";
+  $("f-afetados").value = item ? (item.afetados || []).join(", ") : "";
+
+  /* HU-12: novo incidente nasce sempre Pendente e só muda depois de criado */
+  if (item) {
+    $("f-status").disabled = false;
+    $("f-status").value = item.status;
+    $("dica-status").textContent = "";
+  } else {
+    $("f-status").value = "Pendente";
+    $("f-status").disabled = true;
+    $("dica-status").textContent = "Novos incidentes nascem como Pendente. Altere depois de salvar.";
+  }
+
+  atualizarContadorDesc();
   $("f-img").value = "";
-  $("e-img").textContent = "";
   imgsTemp = item ? [...(item.imagens || [])] : [];
   renderPrevia();
   $("dlg").showModal();
   $("f-titulo").focus();
 }
 
+$("f-desc").oninput = atualizarContadorDesc;
 $("novo").onclick = () => abrir(null);
 $("cancelar").onclick = () => $("dlg").close();
+$("det-fechar").onclick = () => $("dlgDetalhes").close();
+$("dlgDetalhes").onclick = (ev) => { if (ev.target.id === "dlgDetalhes") $("dlgDetalhes").close(); };
+
 $("frm").onsubmit = (ev) => {
   ev.preventDefault();
   limparErros();
+
   const titulo = $("f-titulo").value.trim();
   const descricao = $("f-desc").value.trim();
   const responsavel = $("f-resp").value.trim();
+  const area = $("f-area").value.trim();
+  const solicitanteNome = $("f-sol-nome").value.trim();
+  const departamento = $("f-sol-depto").value.trim();
+  const solicitanteEmail = $("f-sol-email").value.trim();
+  const afetadosBruto = $("f-afetados").value.trim();
+
   let ok = true;
-  if (!titulo) { $("e-titulo").textContent = "Informe um título para o impedimento."; ok = false; }
-  if (!descricao) { $("e-desc").textContent = "Descreva o problema para a equipe entender."; ok = false; }
+  if (!titulo) { $("e-titulo").textContent = "Informe um título para o incidente."; ok = false; }
+  if (!descricao) { $("e-desc").textContent = "Descreva o problema em detalhes para a equipe entender."; ok = false; }
   if (!responsavel) { $("e-resp").textContent = "Indique quem vai resolver."; ok = false; }
+  if (solicitanteEmail && !EMAIL_RE.test(solicitanteEmail)) {
+    $("e-sol-email").textContent = "Informe um e-mail válido para o solicitante.";
+    ok = false;
+  }
+
+  let afetados = [];
+  if (afetadosBruto) {
+    const listaEmails = afetadosBruto.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
+    const invalidos = listaEmails.filter((e) => !EMAIL_RE.test(e));
+    if (invalidos.length) {
+      $("e-afetados").textContent = "E-mail inválido: " + invalidos.join(", ");
+      ok = false;
+    } else {
+      afetados = [...new Set(listaEmails)];
+    }
+  }
   if (!ok) return;
 
-  const status = $("f-status").value;
   const prioridade = $("f-prio").value;
   if (editandoId) {
     const i = itens.find((x) => x.id === editandoId);
-    Object.assign(i, { titulo, descricao, responsavel, status, prioridade, imagens: [...imgsTemp] });
+    const status = $("f-status").value;
+    Object.assign(i, {
+      titulo, descricao, responsavel, area, status, prioridade,
+      solicitanteNome, departamento, solicitanteEmail, afetados,
+      imagens: [...imgsTemp],
+    });
   } else {
-    itens.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), titulo, descricao, responsavel, status, prioridade, imagens: [...imgsTemp], criado: new Date().toISOString() });
+    itens.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      titulo, descricao, responsavel, area,
+      status: "Pendente", // HU-12: sempre nasce Pendente
+      prioridade,
+      solicitanteNome, departamento, solicitanteEmail, afetados,
+      imagens: [...imgsTemp],
+      criado: new Date().toISOString(),
+    });
   }
   salvar();
   $("dlg").close();
   render();
 };
 
-/* imagens anexadas: redimensiona e comprime antes de guardar */
+/* Imagens anexadas: redimensiona e comprime antes de guardar */
 const MAX_IMGS = 3;
 let imgsTemp = [];
 function lerImagem(file) {
@@ -381,6 +695,7 @@ function lerImagem(file) {
     fr.readAsDataURL(file);
   });
 }
+
 function renderPrevia() {
   const box = $("previa");
   box.replaceChildren();
@@ -390,10 +705,11 @@ function renderPrevia() {
     box.append(el("figure", {}, el("img", { src, alt: "Prévia da imagem " + (n + 1) }), rm));
   });
 }
+
 $("f-img").onchange = async (ev) => {
   $("e-img").textContent = "";
   for (const file of Array.from(ev.target.files)) {
-    if (imgsTemp.length >= MAX_IMGS) { $("e-img").textContent = "Limite de " + MAX_IMGS + " imagens por impedimento."; break; }
+    if (imgsTemp.length >= MAX_IMGS) { $("e-img").textContent = "Limite de " + MAX_IMGS + " imagens por incidente."; break; }
     if (!file.type.startsWith("image/")) { $("e-img").textContent = "Escolha apenas arquivos de imagem."; continue; }
     try { imgsTemp.push(await lerImagem(file)); }
     catch (e) { $("e-img").textContent = "Não foi possível ler a imagem “" + file.name + "”."; }
@@ -401,12 +717,75 @@ $("f-img").onchange = async (ev) => {
   ev.target.value = "";
   renderPrevia();
 };
+
 $("lb-fechar").onclick = () => $("lightbox").close();
 $("lightbox").onclick = (ev) => { if (ev.target.id === "lightbox") $("lightbox").close(); };
 
 $("busca").oninput = renderLista;
 $("filtroResp").onchange = renderLista;
+$("filtroArea").onchange = renderLista;
 $("ordem").onchange = renderLista;
+
+/* HU-11: exportar a lista filtrada (atualizada com campos HU-14 a HU-18) */
+function baixar(nome, tipo, conteudo) {
+  const url = URL.createObjectURL(new Blob([conteudo], { type: tipo }));
+  const a = el("a", { href: url, download: nome });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function celulaCsv(v) {
+  let t = String(v == null ? "" : v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return '"' + t.replace(/"/g, '""') + '"';
+}
+
+function exportarCsv() {
+  const vis = listaVisivel();
+  if (!vis.length) { alert("Não há incidentes para exportar com o filtro atual."); return; }
+  const cab = ["Título", "Descrição", "Área", "Responsável", "Status", "Prioridade", "Solicitante", "Departamento", "E-mail Solicitante", "Afetados", "Criado em", "Imagens anexadas"];
+  const linhas = vis.map((i) => [
+    i.titulo, i.descricao, i.area || "", i.responsavel, i.status, i.prioridade,
+    i.solicitanteNome || "", i.departamento || "", i.solicitanteEmail || "",
+    (i.afetados || []).join(", "),
+    new Date(i.criado).toLocaleDateString("pt-BR"),
+    (i.imagens || []).length,
+  ].map(celulaCsv).join(";"));
+  baixar("incidentes.csv", "text/csv;charset=utf-8", "\ufeff" + [cab.map(celulaCsv).join(";"), ...linhas].join("\r\n"));
+}
+
+function exportarJson() {
+  const vis = listaVisivel();
+  if (!vis.length) { alert("Não há incidentes para exportar com o filtro atual."); return; }
+  const porStatus = {};
+  STATUS.forEach((s) => (porStatus[s] = vis.filter((i) => i.status === s).length));
+  const porPrioridade = {};
+  PRIO.forEach((p) => (porPrioridade[p] = vis.filter((i) => i.prioridade === p).length));
+  const dados = {
+    geradoEm: new Date().toISOString(),
+    totais: { total: vis.length, porStatus, porPrioridade },
+    incidentes: vis.map((i) => ({
+      titulo: i.titulo,
+      descricao: i.descricao,
+      area: i.area || "",
+      responsavel: i.responsavel,
+      status: i.status,
+      prioridade: i.prioridade,
+      solicitanteNome: i.solicitanteNome || "",
+      departamento: i.departamento || "",
+      solicitanteEmail: i.solicitanteEmail || "",
+      afetados: i.afetados || [],
+      criadoEm: i.criado,
+      imagensAnexadas: (i.imagens || []).length,
+    })),
+  };
+  baixar("incidentes.json", "application/json;charset=utf-8", JSON.stringify(dados, null, 2));
+}
+
+$("exp-csv").onclick = exportarCsv;
+$("exp-json").onclick = exportarJson;
 
 carregar();
 render();
