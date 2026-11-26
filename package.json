@@ -1,0 +1,12 @@
+{
+  "name": "destrava_time",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DestravaTime: registro e acompanhamento de impedimentos",
+  "scripts": {
+    "test": "node tests/e2e.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}
